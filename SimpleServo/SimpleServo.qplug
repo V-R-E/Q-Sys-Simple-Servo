@@ -1,0 +1,479 @@
+-- Basic Framework Plugin
+-- by QSC
+-- October 2020
+
+-- Information block for the plugin
+PluginInfo = {
+  Name = "SimpleServo",
+  Version = "0.0",
+  BuildVersion = "0.0.0.70",
+  Id = "a2de5239-1952-40b0-b978-05146dbb781a",
+  Author = "Victor Ellis",
+  Description = "A plugin to simply control a servo motor"  
+} 
+
+-- Define the color of the plugin object in the design
+function GetColor(props)
+  return { 102, 102, 102 }
+end
+
+-- The name that will initially display when dragged into a design
+function GetPrettyName(props)
+  return "Simple Servo " .. PluginInfo.Version
+end
+
+-- Optional function used if plugin has multiple pages
+PageNames = { "Servo Control", "Servo Calibration", "Setup" }  --List the pages within the plugin
+function GetPages(props)
+  local pages = {}
+  for ix,name in ipairs(PageNames) do
+    table.insert(pages, {name = PageNames[ix]})
+  end
+  return pages
+end
+
+-- Optional function to define model if plugin supports more than one model
+function GetModel(props)
+  local model = {}
+  if props.Model ~= nil and props.Model.Value ~= "" then
+    table.insert(model, { props.Model.Value } )
+  else
+    table.insert(model, { "Base Model" } )
+  end
+ return model
+end
+
+-- Define User configurable Properties of the plugin
+function GetProperties()
+  local props = {}
+  table.insert(props, {
+    Name = "Debug Print",
+    Type = "enum",
+    Choices = {"None", "Tx/Rx", "Tx", "Rx", "Function Calls", "All"},
+    Value = "None"
+  })
+  
+  table.insert(props, { -- for integer property types
+      Name = "Number of Servos",
+      Type = "integer",
+      Min = 1,        -- Minimum Value
+      Max = 10,       -- Maximum Value
+      Value = 1,      -- Default Value
+  })
+  return props
+end
+
+-- Optional function to define pins on the plugin that are not connected to a Control
+function GetPins(props)
+  local pins = {}
+  return pins
+end
+
+-- Optional function to update available properties when properties are altered by the user
+function RectifyProperties(props)
+  if props.plugin_show_debug.Value == false then 
+    props["Debug Print"].IsHidden = true 
+  end
+  return props
+end
+
+-- Optional function to define components used within the plugin
+function GetComponents(props)
+  local components = {}
+  return components
+end
+
+-- Optional function to define wiring of components used within the plugin
+function GetWiring(props)
+  local wiring = {}
+  return wiring
+end
+
+-- Defines the Controls used within the plugin
+function GetControls(props)
+  local ctrls = {}
+  -------------------------Servo Control--------------------------------------
+  -- Buttons to display SVG image
+  table.insert(ctrls, {
+    Name = "svgImage",
+    ControlType = "Button",
+    ButtonType = "Momentary",
+    Count = 1,
+    UserPin = false,
+    PinStyle = "None"
+  })
+  -- Knob to adjust servo angle
+  table.insert(ctrls, {
+    Name = "svgx",
+    ControlType = "Knob",
+    ControlUnit = "Integer",
+    Min = 0,
+    Max = 180,
+    Count = 1,
+    PinStyle = "Both",
+    UserPin = true
+  })
+  
+  -------------------------Servo Calibration--------------------------------------
+  
+  -- Buttons to set left limit of the servos
+  table.insert(ctrls, {
+    Name = "LeftLimitServo",
+    ControlType = "Button",
+    ButtonType = "Momentary",
+    Count = props["Number of Servos"].Value,
+    UserPin = true,
+    PinStyle = "Input",
+    Icon = "Arrow Left"
+  })
+  -- Buttons to center the servos
+  table.insert(ctrls, {
+    Name = "CenterServo",
+    ControlType = "Button",
+    ButtonType = "Momentary",
+    Count = props["Number of Servos"].Value,
+    UserPin = true,
+    PinStyle = "Input",
+    Icon = "Arrow Up"
+  })
+  -- Buttons to set right limit of the servos
+  table.insert(ctrls, {
+    Name = "RightLimitServo",
+    ControlType = "Button",
+    ButtonType = "Momentary",
+    Count = props["Number of Servos"].Value,
+    UserPin = true,
+    PinStyle = "Input",
+    Icon = "Arrow Right"
+  })
+  -- E-Stops State
+  table.insert(ctrls, {
+    Name = "E-Stop State",
+    ControlType = "Button",
+    ButtonType = "Toggle",
+    Count = props["Number of Servos"].Value,
+    UserPin = false,
+    --PinStyle = "Input",
+    --Icon = "Power"
+  })
+  
+  
+  -------------------------Setup--------------------------------------
+  
+  -- Knob to adjust left limit value
+  table.insert(ctrls, {
+    Name = "SetLeftLimit",
+    ControlType = "Knob",
+    ControlUnit = "Integer",
+    Min = 0,
+    Max = 100,
+    Count = props["Number of Servos"].Value,
+    PinStyle = "None",
+    UserPin = false
+  })
+  -- Knob to adjust right limit value
+  table.insert(ctrls, {
+    Name = "SetRightLimit",
+    ControlType = "Knob",
+    ControlUnit = "Integer",
+    Min = 0,
+    Max = 100,
+    Count = props["Number of Servos"].Value,
+    PinStyle = "None",
+    UserPin = false
+  })
+  
+  
+  -------------------------Hidden Controls--------------------------------------
+  -- PWM Frequency
+  table.insert(ctrls, {
+    Name = "PWMfrequency",
+    ControlType = "Knob",
+    ControlUnit = "Integer",
+    Min = 5,
+    Max = 1000,
+    Count = 1,
+    PinStyle = "Output",
+    UserPin = false
+  })
+  -- PWM Duty
+  table.insert(ctrls, {
+    Name = "PWMduty",
+    ControlType = "Knob",
+    ControlUnit = "Integer",
+    Min = 0,
+    Max = 100,
+    Count = 1,
+    PinStyle = "Output",
+    UserPin = false
+  })
+  return ctrls
+end
+
+--Layout of controls and graphics for the plugin UI to display
+function GetControlLayout(props)
+  local layout = {}
+  local graphics = {}
+  local CurrentPage = PageNames[props["page_index"].Value]
+  if CurrentPage == "Servo Control" then
+    table.insert(graphics,{
+      Type = "GroupBox",
+      Text = "Environment Data",
+      Fill = {0,0,255,10},
+      StrokeWidth = 1,
+      Radius = 8,
+      Position = {5,5},
+      Size = {450,104},
+      HTextAlign = "Left"
+    })
+    -- Button to display SVG image
+    layout["svgImage"] = {
+      PrettyName = "Servo Horn SVG",
+      Style = "Button",
+      Position = {30,30},
+      Size = {150,150},
+      Color = {0,0,0}
+    }
+    -- Knob to adjust the servo
+    layout["svgx"] = {
+      PrettyName = "Servo Angle",
+      Style = "Fader",
+      Position = {550,10},
+      Size = {50,500},
+      Color = {0,0,0}
+    }
+  
+  
+  -------------------------Servo Calibration--------------------------------------
+  
+  elseif CurrentPage == "Servo Calibration" then
+    if props["Number of Servos"].Value == 1 then
+      table.insert(graphics,{
+        Type = "GroupBox",
+        Text = "",
+        Fill = {0,0,255,10},
+        StrokeWidth = 1,
+        Radius = 8,
+        Position = {5,5},
+        Size = {250,400},
+        HTextAlign = "Left"
+      })
+      -- Button to send servo to left limit position
+      layout["LeftLimitServo"] = {
+        PrettyName = "Left Limit Servo",
+        Style = "Button",
+        Position = {30,10},
+        Size = {50,16},
+        Color = {0,0,0}
+      }
+      -- Button to center servo position
+      layout["CenterServo"] = {
+        PrettyName = "Center Servo",
+        Style = "Button",
+        Position = {105,10},
+        Size = {50,16},
+        Color = {0,0,0}
+      }
+      -- Button to send servo to right limit position
+      layout["RightLimitServo"] = {
+        PrettyName = "Right Limit Servo",
+        Style = "Button",
+        Position = {180,10},
+        Size = {50,16},
+        Color = {0,0,0}
+      }
+  
+    else
+      for i=0, props["Number of Servos"].Value do
+        -- Buttons to send servos to left limit position
+        layout["LeftLimitServo "..i] = {
+          PrettyName = "Left Limit Servo " .. i,
+          Style = "Button",
+          Position = {30,42*i},
+          Size = {50,16},
+          Color = {0,0,0}
+        }
+        -- Buttons to center servos positions
+        layout["CenterServo "..i] = {
+          PrettyName = "Center Servo " .. i,
+          Style = "Button",
+          Position = {105,42*i},
+          Size = {50,16},
+          Color = {0,0,0}
+        }
+        -- Buttons to send servos to right limit position
+        layout["RightLimitServo "..i] = {
+          PrettyName = "Right Limit Servo " .. i,
+          Style = "Button",
+          Position = {180,42*i},
+          Size = {50,16},
+          Color = {0,0,0}
+        }
+      end
+    end
+  
+  
+  
+  
+  -------------------------Setup--------------------------------------
+  
+  elseif CurrentPage == "Setup" then
+    if props["Number of Servos"].Value == 1 then
+      -- Knob to adjust left limit value
+      layout["SetLeftLimit"] = {
+        --PrettyName = "Left Limit Servo",
+        Style = "Knob",
+        Position = {30,10},
+        Size = {50,16},
+        Color = {0,0,0}
+      }
+      -- Knob to adjust right limit value
+      layout["SetRightLimit"] = {
+        --PrettyName = "Right Limit Servo",
+        Style = "Knob",
+        Position = {180,10},
+        Size = {50,16},
+        Color = {0,0,0}
+      }
+  
+    else
+      for i=0, props["Number of Servos"].Value do
+        -- Knobs to adjust left limit values
+        layout["SetLeftLimit "..i] = {
+          --PrettyName = "Left Limit Servo " .. i,
+          Style = "Knob",
+          Position = {30,42*i},
+          Size = {50,16},
+          Color = {0,0,0}
+        }
+        -- Knobs to adjust right limit values
+        layout["SetRightLimit "..i] = {
+          --PrettyName = "Right Limit Servo " .. i,
+          Style = "Knob",
+          Position = {180,42*i},
+          Size = {50,16},
+          Color = {0,0,0}
+        }
+      end
+    end
+  
+    table.insert(graphics,{
+      Type = "GroupBox",
+      Text = "Control",
+      Fill = {200,200,200},
+      StrokeWidth = 1,
+      Position = {5,5},
+      Size = {200,100}
+    })
+    table.insert(graphics,{
+      Type = "Text",
+      Text = "Say Hello:",
+      Position = {10,42},
+      Size = {90,16},
+      FontSize = 14,
+      HTextAlign = "Right"
+    })
+    layout["SendButton"] = {
+      PrettyName = "Buttons~Send The Command",
+      Style = "Button",
+      Position = {105,42},
+      Size = {50,16},
+      Color = {0,0,0}
+    }
+    -------------------------Hidden Controls--------------------------------------
+    -- Knob to set PWM Frequency
+    layout["PWMfrequency"] = {
+      PrettyName = "PWM Frequency",
+      Position = {0,0},
+      Size = {0,0}
+    }
+    -- Knob to set PWM Duty Cycle
+    layout["PWMduty"] = {
+      PrettyName = "PWM Duty Cycle",
+      Position = {0,0},
+      Size = {0,0}
+    }
+  end
+  return layout, graphics
+end
+
+--Start event based logic
+if Controls then
+  json = require("rapidjson")
+  require("LuaXML")
+  --[[
+  gsSVGHeader = <svg width=\"%s\" height=\"%s\" viewbox=\"%s\" xmlns=\"%s\" version=\"%s\">
+  gsSVGFooter = </svg>
+  gsSVGCircle = "<circle cx=\"%s\" cy=\"%s\" r=\"%s\" fill=\"%s\" stroke=\"%s\" stroke-width=\"%s\" />"
+  gsSVGRect = "<rect x=\"%s\" y=\"%s\" width=\"%s\" height=\"%s\" fill=\"%s\" stroke=\"%s\" stroke-width=\"%s\" />"
+  gsSVGEllipse = "<ellipse transform=\"translate(%s) rotate(%s)\" rx=\"%s\" ry=\"%s\" fill=\"%s\" stroke=\"%s\" stroke-width=\"%s\" />"
+  gsSVGLine = "<line x1=\"%s\" y1=\"%s\" x2=\"%s\" y2=\"%s\" stroke= \"%s\" stroke-width=\"%s\" />
+  gsSVGPolyline = "<polyline fill=\"%s\ stroke=\"%s\ stroke-width=\"%s\ points=\"%s\ />
+  gsSVGPolygon = "<polygon fill=\"%s\ stroke=\"%s\ stroke-width=\"%s\ points=\"%s\ />
+  gsSVGText = "<text x=\"%s\" y=\"%s\" font-family=\"%s\" font-size=\"%s\" fill=\"%s\" > %s </text>"]]--
+   
+  gsSVGFooter = "</svg>"
+   
+  --Calc Angle on Radius
+  function CalcAngleForSVG(lsAngle,lsRadius)
+  lsAngle = math.rad(lsAngle)
+  local x1 = math.cos(lsAngle)*lsRadius + 200
+  local y1 = math.sin(lsAngle)*lsRadius + 200
+  print(math.floor(x1),math.floor(y1))
+  return math.floor(x1),math.floor(y1)
+  end
+   
+  --Generate SVG Header
+  function GenSVGHeader(lsWid, lsHght, lsViewBox) 
+    return(string.format("<svg width=\"%s\" height=\"%s\" viewbox=\"%s\" xmlns=\"%s\" version=\"%s\">",lsWid, lsHght, lsViewBox,"http://www.w3.org/2000/svg","1.1"))
+  end
+   
+  --Generate SVG Circle
+  function GenCircleSVG(lsXVal, lsYVal, lsRadius, lsFillColor, lsStrokeColor,lsStrokeWidth)
+    return(string.format("<circle cx=\"%s\" cy=\"%s\" r=\"%s\" fill=\"%s\" stroke=\"%s\" stroke-width=\"%s\" />",lsXVal, lsYVal, lsRadius, lsFillColor, lsStrokeColor,lsStrokeWidth))
+  end
+   
+   
+  --Generate SVG Line
+  function GenLineSVG(lsXStart,lsYStart,lsXEnd,lsYEnd,lsStrokeColor,lsStrokeWidth)
+    return(string.format("<line x1=\"%s\" y1=\"%s\" x2=\"%s\" y2=\"%s\" stroke=\"%s\" stroke-width=\"%s\" />",lsXStart,lsYStart,lsXEnd,lsYEnd,lsStrokeColor,lsStrokeWidth))
+  end
+   
+   
+  --Generate SVG Text
+  function GenTextSVG(lsXVal,lsYVal,lsFontSize,lsColor,lsText)
+  return(string.format("<text x=\"%s\" y=\"%s\" font-family=\"%s\" font-size=\"%s\" fill=\"%s\" > %s </text>",lsXVal,lsYVal,"Roboto",lsFontSize,lsColor,lsText))
+  end
+   
+  --Assemble String Together and Convert to XML
+  function generateSVGFormat()
+  local x,y = CalcAngleForSVG(Controls["svgx"].String + 180,"150")
+  local x2,y2 = CalcAngleForSVG(Controls["svgx"].String + 270,"15")
+  local x3,y3 = CalcAngleForSVG(Controls["svgx"].String + 90,"15")
+  local x4,y4 = CalcAngleForSVG(Controls["svgx"].String + 180,"70")
+  local x5,y5 = CalcAngleForSVG(Controls["svgx"].String + 180,"110")
+  lsSVG = string.format(GenSVGHeader("400", "400", "0 0 400 400")..GenCircleSVG("200","200","30","Black","Black","0")..GenLineSVG(x,y,x2,y2,"Black","25")..GenLineSVG(x,y,x3,y3,"Black","25")..GenCircleSVG(x,y,"8.5","White","Black","7.5")..GenCircleSVG("200","200","10","White","Black","0")..GenCircleSVG(x4,y4,"5","White","Black","0")..GenCircleSVG(x5,y5,"5","White","Black","0")..GenTextSVG(168,290,"40","Red",Controls["svgx"].String.."*")..gsSVGFooter)
+  SVGXML = xml.eval(lsSVG)
+  return(SVGXML)  
+  end
+   
+  --Function to Generate Image and assign to .lengend on Button
+  function generate()
+    local luaSVG = generateSVGFormat()
+    
+    legend = {
+      DrawChrome = false,
+      IconData = Crypto.Base64Encode(tostring(luaSVG))
+    }
+    print("Raw String:"..tostring(luaSVG))
+    Controls.svgImage.Legend = json.encode(legend)
+  end
+   
+  generate()
+   
+  --Slider for testing
+  Controls["svgx"].EventHandler = function()
+  generate()
+  end
+   
+end
