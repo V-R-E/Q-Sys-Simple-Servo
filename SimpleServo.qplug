@@ -243,8 +243,8 @@ function GetControls(props)
     Name = "PWM Frequency",
     ControlType = "Knob",
     ControlUnit = "Float",
-    Min = 5,
-    Max = 1000,
+    Min = 50,
+    Max = 50,
     Count = 1,
     PinStyle = "Output",
     UserPin = false
@@ -792,7 +792,6 @@ end
 if Controls then
   x=0
   y=0
-  
   
   json = require("rapidjson")
   require("LuaXML")
