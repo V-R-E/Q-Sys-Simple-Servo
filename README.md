@@ -27,7 +27,8 @@ The Simple Servo plugin is designed to make contol of PWM hobby servo motors sup
 - 5v Power Supply
  
 ## SETUP
-![SimpleServo](https://github.com/user-attachments/assets/c9a01ed1-894f-418a-85a2-95b780242e42)
+![SimpleServo](https://github.com/user-attachments/assets/2feef951-e731-4a7c-9d53-33b0015d6060)
+
 
 
 Connect the Servo GND pin to the power supply GND and Q-Sys GPIO GND pin
