@@ -16,7 +16,7 @@ The Simple Servo plugin is designed to make contol of PWM hobby servo motors sup
 - PWM Duty Cycle (Output to control the servo PWM pin duty cycle)
   - ***Write Only*** [0-15]
 - PWM Frequency (Output to set the GPIO PWM frequency)
-  - ***Write Only*** [5]
+  - ***Write Only*** [50]
 - Servo Angle (Slider for setting the servo angle)
   - ***Read Only*** [0-180]
 
