@@ -1,4 +1,6 @@
-# Q-Sys-Simple-Servo
+# Simple-Servo
+Simple-Servo by Victor R. Ellis
+
 This is a Q-Sys plugin to easily control PWM hobby servo motors through native Q-Sys PWM GPIO pins.
 
 ## Overview
