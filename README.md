@@ -4,7 +4,7 @@ Simple-Servo by Victor R. Ellis
 This is a Q-Sys plugin to easily control PWM hobby servo motors through native Q-Sys PWM GPIO pins.
 
 ## Overview
-The Simple Servo plugin is designed to make contol of PWM hobby servo motors super simple. By utilizing the built in PWM capible GPIO pins on Q-Sys peripherials such as network amplifiers, you can easily connect PWM hobby servos without the need of extra hardware or special 3rd party servo controllers. Simply connect the PWM Frequency and PWM Duty Cycle pin(s) of the plugin to the corresponding pins of the network amplifier GPIO component and you're done. The plugin can suport up to 5 servo motors, each with their own custom calibration settings and default power on positions found on the servo setup page.
+The Simple Servo plugin is designed to make contol of PWM hobby servo motors super simple. By utilizing the built in PWM capible GPIO pins on Q-Sys peripherials such as network amplifiers and I/O Frames, you can easily connect PWM hobby servos without the need of extra hardware or special third party servo controllers. Simply connect the PWM Frequency and PWM Duty Cycle pin(s) of the plugin to the corresponding pins of the Q-Sys equipment GPIO component and you're done. The plugin can suport up to 5 servo motors, each with their own custom calibration settings and default power on positions found on the servo setup page.
 
 ## Properties
 - Number of Servos
@@ -24,20 +24,24 @@ The Simple Servo plugin is designed to make contol of PWM hobby servo motors sup
 
 ## HARDWARE
 
+- Q-Sys Network Amplifier or I/O Frame
+
 - PWM Servo Motor
 
 - 5v Power Supply
  
 ## SETUP
+Connect the PWM Frequency and PWM Duty Cycle pin(s) of the plugin to the corresponding pins of the network amplifier or I/O Frame GPIO component as shown below.
+
 ![Q-Sys Setup](https://github.com/V-R-E/Q-Sys-Simple-Servo/blob/main/Photos/SimpleServo.png)
 
 
 
-Connect the Servo GND pin to the power supply GND and Q-Sys GPIO GND pin
+Connect the Servo GND pin to the power supply GND and Q-Sys GPIO GND pin.
 
-Connect the Servo 5v pin to the power supply 5v output
+Connect the Servo 5v pin to the power supply 5v output.
 
-Connect the Servo Signal pin to the Q-Sys PWM GPIO pin
+Connect the Servo Signal pin to the Q-Sys PWM GPIO pin.
 
 ![Servo Wiring](https://github.com/V-R-E/Q-Sys-Simple-Servo/blob/main/Photos/Wiring.png)
 
