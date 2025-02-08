@@ -29,7 +29,7 @@ The Simple Servo plugin is designed to make contol of PWM hobby servo motors sup
 - 5v Power Supply
  
 ## SETUP
-![SimpleServo](https://github.com/user-attachments/assets/2feef951-e731-4a7c-9d53-33b0015d6060)
+![Q-Sys Setup](https://github.com/V-R-E/Q-Sys-Simple-Servo/blob/main/Photos/SimpleServo.png)
 
 
 
@@ -39,12 +39,12 @@ Connect the Servo 5v pin to the power supply 5v output
 
 Connect the Servo Signal pin to the Q-Sys PWM GPIO pin
 
-![Servo WiringV2](https://github.com/user-attachments/assets/8d04f42e-875f-450d-8e06-a66e9effd5c4)
+![Servo Wiring](https://github.com/V-R-E/Q-Sys-Simple-Servo/blob/main/Photos/Wiring.png)
 
 While the above wiring will typically work for short distances between the servo and Q-Sys equipment it is heavily recomended to use a [signal booster](https://www.servocity.com/signal-boosting-servo-extension-3-pos-tjc8-mh-fc-to-fh-mc-300mm-length/?showHidden=true) if running long distances or stability issues may occur.
 
-![3116-1718-0300__72365__04156](https://github.com/user-attachments/assets/00386235-ff52-47d1-9a02-aacc061a330e)
+![Signal Booster](https://github.com/V-R-E/Q-Sys-Simple-Servo/blob/main/Photos/Signal%20Booster.jpg)
 
 Alternatively you can use products like the [4 Channel Servo Extension via CAT6](https://www.servocity.com/4-channel-servo-extension-via-cat6/) to connect multiple servos at long distances with a standard ethernet cable.
 
-![3802-2745-4527-REV1-Ang5__52365__94767](https://github.com/user-attachments/assets/52cd8f4f-afdf-4cbb-a7e1-38b168daedc5)
+![Signal Extension](https://github.com/V-R-E/Q-Sys-Simple-Servo/blob/main/Photos/Signal%20Extender.jpg)
